@@ -2,20 +2,26 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
+  --color-primary: #8ecae6; /* lightblue*/
+  --color-secondary: #023047; /* darkblue */
+  --color-accent: #f59e0b; /* Amber */
+  --color-orange: #fb8500; 
+  --color-danger: #ef4444; /* Red-500 */
+  --color-dark-blue: #0f172a; /* Slate-900 */
 }
 
-@theme inline {
+/*@theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
+}*/
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #ffffff;
   }
 }
 
@@ -23,4 +29,71 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+
+
+@layer utilities {
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+
+  .text-primary {
+    color: var(--color-primary);
+  }
+
+  .bg-secondary {
+    background-color: var(--color-secondary);
+  }
+
+  .text-secondary {
+    color: var(--color-secondary);
+  }
+
+  .bg-accent {
+    background-color: var(--color-accent);
+  }
+
+  .text-accent {
+    color: var(--color-accent);
+  }
+
+  .bg-danger {
+    background-color: var(--color-danger);
+  }
+
+  .text-danger {
+    color: var(--color-danger);
+  }
+
+  .bg-dark-blue {
+    background-color: var(--color-dark-blue);
+  }
+
+  .text-dark-blue {
+    color: var(--color-dark-blue);
+  }
+
+  .bg-orange {
+    background-color: var(--color-orange);
+  }
+
+  .text-orange {
+    color: var(--color-corange);
+  }
 }
