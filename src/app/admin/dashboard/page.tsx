@@ -8,6 +8,10 @@ import Navbar from '@/components/Navbar';
 import { Resident } from '@/types/resident';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
+
 
 export default function AdminDashboard() {
   const loading = useAuthGuard('admin');
@@ -30,8 +34,32 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
+    const fetchNickname = async () => {
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (userData.nickname) {
+              const capitalized =
+                userData.nickname.charAt(0).toUpperCase() + userData.nickname.slice(1);
+              setNickname(capitalized);
+            }
+          }
+        }
+      });
+    };
+  
+    fetchNickname();
+  }, []);
+  
+
+  useEffect(() => {
     fetchResidents();
   }, [showRecent]);
+
+  const [nickname, setNickname] = useState('');
+
 
   const handleEdit = (resident: Resident & { id: string }) => {
     setSelectedResident(resident);
@@ -59,7 +87,10 @@ export default function AdminDashboard() {
       <Navbar />
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold mb-4">
+        Admin{nickname  ? ` ${nickname}` : ''}'s Dashboard
+      </h1>
+
           <button
             onClick={handleAddNew}
             className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded shadow"
@@ -68,6 +99,7 @@ export default function AdminDashboard() {
           </button>
         </div>
 
+    
         <ResidentList
           residents={residents}
           refreshResidents={refreshResidents}

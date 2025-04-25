@@ -66,13 +66,25 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
 
   const filtered = useMemo(() => {
     return residents
-      .filter((res) =>
-        `${res.firstName} ${res.middleName} ${res.lastName}`
-          .toLowerCase()
-          .includes(search.toLowerCase()) &&
+    .filter((res) => {
+      const searchLower = search.toLowerCase();
+      const fullName = `${res.firstName} ${res.middleName} ${res.lastName}`.toLowerCase();
+      const address = res.address?.toLowerCase() || '';
+      const phone = res.phone?.toLowerCase() || '';
+      const age = res.age?.toString() || '';
+      const email = res.email?.toLowerCase() || '';
+    
+      return (
+        (fullName.includes(searchLower) ||
+         address.includes(searchLower) ||
+         phone.includes(searchLower) ||
+         email.includes(searchLower) ||
+         age.includes(searchLower)) &&
         (!gender || res.gender === gender) &&
         (!status || res.civilStatus === status)
-      )
+      );
+    })
+    
       .sort((a, b) => {
         if (a.createdAt && b.createdAt) {
           const aDate = new Date(a.createdAt.seconds * 1000);

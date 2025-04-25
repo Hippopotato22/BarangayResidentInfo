@@ -1,15 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+
+
+import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
-import { Resident } from '@/types/resident'; // Assuming you have a Resident type
+import { Resident } from '@/types/resident';
 import useAuthGuard from '@/utils/authGuard';
+import { onAuthStateChanged } from 'firebase/auth';
+
 
 export default function UserDashboard() {
-  const loading = useAuthGuard('user'); // Ensure only 'user' role can access this page
+  const loading = useAuthGuard('user');
   const router = useRouter();
 
   const [residents, setResidents] = useState<Resident[]>([]);
@@ -19,7 +22,26 @@ export default function UserDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [totalResidents, setTotalResidents] = useState(0);
+ // const [nickname, setNickname] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [nickname, setNickname] = useState('');
 
+  // Fetch the current user's nickname
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setNickname(userData.nickname || null);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch residents
   useEffect(() => {
     const fetchResidents = async () => {
       const residentsCollection = collection(db, 'residents');
@@ -36,13 +58,40 @@ export default function UserDashboard() {
     fetchResidents();
   }, []);
 
-  const filteredResidents = residents.filter((res) =>
-    `${res.firstName} ${res.middleName} ${res.lastName}`
-      .toLowerCase()
-      .includes(search.toLowerCase()) &&
-    (!gender || res.gender === gender) &&
-    (!status || res.civilStatus === status)
-  );
+  const filteredResidents = useMemo(() => {
+    return residents
+    .filter((res) => {
+      const searchLower = search.toLowerCase();
+      const fullName = `${res.firstName} ${res.middleName} ${res.lastName}`.toLowerCase();
+      const address = res.address?.toLowerCase() || '';
+      const phone = res.phone?.toLowerCase() || '';
+      const email = res.email?.toLowerCase() || '';
+      const age = res.age?.toString() || '';
+    
+      return (
+        (fullName.includes(searchLower) ||
+         address.includes(searchLower) ||
+         phone.includes(searchLower) ||
+         email.includes(searchLower) ||
+         age.includes(searchLower)) &&
+        (!gender || res.gender === gender) &&
+        (!status || res.civilStatus === status)
+      );
+    })
+    
+      .sort((a, b) => {
+        if (a.createdAt && b.createdAt) {
+          const aDate = new Date(a.createdAt.seconds * 1000);
+          const bDate = new Date(b.createdAt.seconds * 1000);
+          return sortOrder === 'desc'
+            ? bDate.getTime() - aDate.getTime()
+            : aDate.getTime() - bDate.getTime();
+        }
+        return 0;
+      });
+  }, [residents, search, gender, status, sortOrder]);
+
+  
 
   const paginatedResidents = filteredResidents.slice(
     (currentPage - 1) * itemsPerPage,
@@ -54,8 +103,11 @@ export default function UserDashboard() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">User Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 p-6">
+      {/* Show nickname at the top */}
+      <h1 className="text-2xl font-bold mb-4 text-dark-blue">
+        {nickname  ? ` ${nickname}` : ''}'s Dashboard
+      </h1>
 
       {/* Filters */}
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2">
@@ -64,12 +116,12 @@ export default function UserDashboard() {
           placeholder="Search by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="p-2 border rounded w-full sm:w-auto"
+          className="p-2 border border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-white"
         />
         <select
           value={gender}
           onChange={(e) => setGender(e.target.value)}
-          className="p-2 border rounded"
+          className="p-2 border rounded border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-white"
         >
           <option value="">All Genders</option>
           <option value="Male">Male</option>
@@ -78,12 +130,23 @@ export default function UserDashboard() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="p-2 border rounded"
+          className="p-2 border rounded border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-white"
         >
           <option value="">All Statuses</option>
           <option value="Single">Single</option>
           <option value="Married">Married</option>
         </select>
+
+        <select
+        value={sortOrder}
+        onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+        className="p-2 border rounded border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-white"
+      >
+        <option value="desc">Newest First</option>
+        <option value="asc">Oldest First</option>
+      </select>
+
+        
       </div>
 
       {/* Resident List */}
@@ -91,10 +154,9 @@ export default function UserDashboard() {
         {paginatedResidents.map((res) => (
           <li
             key={res.id}
-            className="p-3 border rounded flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all duration-500 ease-out"
+            className="p-3 border rounded flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all duration-500 ease-out text-dark-blue"
           >
             <div className="flex gap-4 items-start">
-              {/* Profile Image */}
               {res.profilePicture && (
                 <img
                   src={res.profilePicture}
@@ -102,8 +164,6 @@ export default function UserDashboard() {
                   className="w-16 h-16 rounded-full object-cover border"
                 />
               )}
-
-              {/* Basic Info */}
               <div>
                 <strong>{`${res.firstName} ${res.middleName} ${res.lastName} ${res.suffix || ''}`}</strong>
                 <p>{res.age} years old, {res.gender}, {res.civilStatus}</p>
@@ -112,16 +172,12 @@ export default function UserDashboard() {
                 {res.phone && <p>Phone: {res.phone}</p>}
               </div>
             </div>
-
-            {/* View Details Button */}
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => router.push(`/user/residents/${res.id}`)} // View Details
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:scale-105 transition"
-              >
-                View Details
-              </button>
-            </div>
+            <button
+              onClick={() => router.push(`/user/residents/${res.id}`)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:scale-105 transition"
+            >
+              View Details
+            </button>
           </li>
         ))}
       </ul>

@@ -79,10 +79,10 @@ export default function ResidentPage() {
     <main className="bg-gradient-to-r from-gray-800 to-black min-h-screen flex justify-center items-start py-25 relative">
       <div className="max-w-3xl mx-auto p-6 bg-white shadow-xl rounded-lg text-gray-800">
         <div className="relative">
-          {resident.profilePicture ? (
+          {resident.profilePicture?.startsWith('data:image') ?  (
             <div className="mb-6 flex justify-center">
               <Image
-                src={`/uploads/${resident.profilePicture}`}
+                src={resident.profilePicture}
                 alt="Profile Picture"
                 width={200}
                 height={200}
