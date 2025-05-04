@@ -4,8 +4,10 @@ import { Resident } from '@/types/resident';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import toast, { Toaster } from 'react-hot-toast';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, use } from 'react';
 import { useRouter } from 'next/navigation'; // ✅ Add router for navigation
+import ResidentPage from '@/app/admin/residents/[id]/page';
+import { address } from 'framer-motion/client';
 
 interface Props {
   residents: (Resident & { id: string })[];
@@ -25,8 +27,16 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
   const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
   const [residentToDelete, setResidentToDelete] = useState<string | null>(null);
   const itemsPerPage = 5;
+  const [barangay, setBarangay] = useState('');
 
   const router = useRouter(); // ✅ For redirection
+
+
+
+  const uniqueBarangays = Array.from(
+    new Set(residents.map((res) => res.address.split(',')[0].trim()))
+  ).sort();
+  
 
   const handleDelete = async () => {
     if (!residentToDelete) return;
@@ -48,6 +58,7 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
   const handleEdit = (resident: Resident & { id: string }) => {
     setSelectedResident(resident);
     onEdit(resident);
+    
   };
 
   const handleModalClose = () => {
@@ -66,25 +77,25 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
 
   const filtered = useMemo(() => {
     return residents
-    .filter((res) => {
-      const searchLower = search.toLowerCase();
-      const fullName = `${res.firstName} ${res.middleName} ${res.lastName}`.toLowerCase();
-      const address = res.address?.toLowerCase() || '';
-      const phone = res.phone?.toLowerCase() || '';
-      const age = res.age?.toString() || '';
-      const email = res.email?.toLowerCase() || '';
-    
-      return (
-        (fullName.includes(searchLower) ||
-         address.includes(searchLower) ||
-         phone.includes(searchLower) ||
-         email.includes(searchLower) ||
-         age.includes(searchLower)) &&
-        (!gender || res.gender === gender) &&
-        (!status || res.civilStatus === status)
-      );
-    })
-    
+      .filter((res) => {
+        const searchLower = search.toLowerCase();
+        const fullName = `${res.firstName} ${res.middleName} ${res.lastName}`.toLowerCase();
+        const address = res.address?.toLowerCase() || '';
+        const phone = res.phone?.toLowerCase() || '';
+        const age = res.age?.toString() || '';
+        const email = res.email?.toLowerCase() || '';
+  
+        return (
+          (fullName.includes(searchLower) ||
+           address.includes(searchLower) ||
+           phone.includes(searchLower) ||
+           email.includes(searchLower) ||
+           age.includes(searchLower)) &&
+          (!gender || res.gender === gender) &&
+          (!status || res.civilStatus === status) &&
+          (!barangay || address.startsWith(barangay.toLowerCase()))
+        );
+      })
       .sort((a, b) => {
         if (a.createdAt && b.createdAt) {
           const aDate = new Date(a.createdAt.seconds * 1000);
@@ -95,7 +106,8 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
         }
         return 0;
       });
-  }, [residents, search, gender, status, sortOrder]);
+  }, [residents, search, gender, status, barangay, sortOrder]);
+  
 
   const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -114,20 +126,35 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
           onChange={(e) => setSearch(e.target.value)}
           className="p-2 border rounded w-full sm:w-auto"
         />
-        <select value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded">
+        <select value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded bg-dark-blue">
           <option value="">All Genders</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
         </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="p-2 border rounded">
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="p-2 border rounded bg-dark-blue">
           <option value="">All Statuses</option>
           <option value="Single">Single</option>
           <option value="Married">Married</option>
         </select>
-        <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'desc' | 'asc')} className="p-2 border rounded">
+        <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'desc' | 'asc')} className="p-2 border rounded bg-dark-blue">
           <option value="desc">Newest</option>
           <option value="asc">Oldest</option>
         </select>
+        <select
+          value={barangay}
+          onChange={(e) => setBarangay(e.target.value)}
+          className="p-2 border rounded bg-dark-blue"
+        >
+          <option value="">All Barangays</option>
+        
+          <option value="Barangay 1">Barangay 1</option>
+          <option value="Barangay 2">Barangay 2</option>
+          <option value="Barangay 3">Barangay 3</option>
+          <option value="Barangay 4">Barangay 4</option>
+          <option value="Barangay 5">Barangay 5</option>
+          
+        </select>
+
       </div>
 
       {/* List */}

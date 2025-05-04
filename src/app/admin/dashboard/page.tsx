@@ -11,6 +11,7 @@ import { db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth } from '@/lib/firebase';
+import PopulationStats from '@/app/PopulationStats';
 
 
 export default function AdminDashboard() {
@@ -83,7 +84,10 @@ export default function AdminDashboard() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="pt-20 bg-dark-blue px-4 md:px-12 lg:px-20 bg-gray-50 min-h-screen">
+    <div className="flex flex-col md:flex-row gap-4 pt-20 bg-dark-blue px-4 md:px-12 lg:px-20 bg-gray-50 min-h-screen">
+  
+  <PopulationStats residents={residents} />
+      
       <Navbar />
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
@@ -128,10 +132,17 @@ export default function AdminDashboard() {
             handleCloseModal();
           }}
         />
+        
       </div>
+    
+
+      
     </div>
   )}
-
+  <div className="flex flex-col md:flex-row gap-4">
+  </div>
     </div>
+    
   );
+  
 }

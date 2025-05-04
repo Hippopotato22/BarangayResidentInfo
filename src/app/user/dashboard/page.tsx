@@ -103,7 +103,7 @@ export default function UserDashboard() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-200 p-6 pt-20">
       {/* Show nickname at the top */}
       <h1 className="text-2xl font-bold mb-4 text-dark-blue">
         {nickname  ? ` ${nickname}` : ''}'s Dashboard
@@ -121,7 +121,7 @@ export default function UserDashboard() {
         <select
           value={gender}
           onChange={(e) => setGender(e.target.value)}
-          className="p-2 border rounded border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-white"
+          className="p-2 border rounded border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-powder-blue"
         >
           <option value="">All Genders</option>
           <option value="Male">Male</option>
@@ -130,7 +130,7 @@ export default function UserDashboard() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="p-2 border rounded border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-white"
+          className="p-2 border rounded border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-powder-blue"
         >
           <option value="">All Statuses</option>
           <option value="Single">Single</option>
@@ -140,10 +140,10 @@ export default function UserDashboard() {
         <select
         value={sortOrder}
         onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-        className="p-2 border rounded border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-white"
+        className="p-2 border rounded border-gray-500 rounded w-full sm:w-auto text-gray-900 bg-powder-blue"
       >
-        <option value="desc">Newest First</option>
-        <option value="asc">Oldest First</option>
+        <option value="desc">Newest</option>
+        <option value="asc">Oldest</option>
       </select>
 
         

@@ -16,5 +16,7 @@ export interface Resident {
   profilePicture?: string; // URL to the profile picture (optional)
   createdAt: Timestamp;
   updatedAt: Timestamp;
-  
+  barangayClearance?: string;
+  residencyCertificate?: string;
+  indigencyCertificate?: string;
 }

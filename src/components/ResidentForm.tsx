@@ -5,11 +5,14 @@ import { db } from '@/lib/firebase';
 import { addDoc, collection, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { Resident } from '@/types/resident';
 import toast from 'react-hot-toast';
+import ResidentList from './ResidentList';
+import ResidentPage from '@/app/admin/residents/[id]/page';
 
 interface Props {
   selectedResident?: Resident & { id: string };
   onSave?: () => void;
   clearSelection?: () => void;
+  
 }
 
 export default function ResidentForm({ selectedResident, onSave, clearSelection }: Props) {
@@ -26,6 +29,9 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
     phone: '',
     email: '',
     profilePicture: '',
+    indigencyCertificate: '',
+    residencyCertificate: '',
+    barangayClearance: '',
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   });
@@ -33,7 +39,7 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
 
-  const barangayOptions = ['Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4']; // Add the list of barangays here
+  const barangayOptions = ['Barangay 1', 'Barangay 2', 'Barangay 3', 'Barangay 4', 'Barangay 5']; // Add the list of barangays here
 
   useEffect(() => {
     if (selectedResident) {
@@ -50,6 +56,9 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
         phone: selectedResident.phone,
         email: selectedResident.email,
         profilePicture: selectedResident.profilePicture,
+        indigencyCertificate: selectedResident.indigencyCertificate,
+        residencyCertificate: selectedResident.residencyCertificate,
+        barangayClearance: selectedResident.barangayClearance,
         createdAt: selectedResident.createdAt,
         updatedAt: selectedResident.updatedAt,
       });
@@ -119,6 +128,36 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
         }));
       };
       reader.readAsDataURL(file);
+    } else if (name === 'indigencyCertificate' && (e.target as HTMLInputElement).files?.[0]) {
+      const file = (e.target as HTMLInputElement).files![0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setResident((prev) => ({
+          ...prev,
+          indigencyCertificate: reader.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else if (name === 'residencyCertificate' && (e.target as HTMLInputElement).files?.[0]) {
+      const file = (e.target as HTMLInputElement).files![0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setResident((prev) => ({
+          ...prev,
+          residencyCertificate: reader.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else if (name === 'barangayClearance' && (e.target as HTMLInputElement).files?.[0]) {
+      const file = (e.target as HTMLInputElement).files![0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setResident((prev) => ({
+          ...prev,
+          barangayClearance: reader.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
     } else {
       let newValue = value;
   
@@ -128,7 +167,7 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
   
       if (name === 'phone') {
         let raw = value.replace(/\D/g, ''); // Remove non-digits
-      
+  
         if (raw.startsWith('63')) {
           raw = '+' + raw;
         } else if (raw.startsWith('9')) {
@@ -138,26 +177,25 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
         } else {
           raw = '09' + raw; // Default to 0 if user starts wrong
         }
-      
+  
         // Limit to 11 digits if starting with 0 or +639 if starting with country code
         if (raw.startsWith('+63')) {
           raw = raw.slice(0, 13); // +63 + 10 digits
         } else {
           raw = raw.slice(0, 11); // 0 + 10 digits
         }
-      
+  
         setResident((prev) => ({
           ...prev,
           phone: raw,
         }));
-      
+  
         if (errors.phone) {
           setErrors((prev) => ({ ...prev, phone: '' }));
         }
-      
+  
         return;
       }
-      
   
       setResident((prev) => ({
         ...prev,
@@ -171,33 +209,39 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
   };
   
   
-  
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!validate()) return;
-
+  
     setLoading(true);
-
+  
     const timestamp = Timestamp.now();
-
+  
     try {
+      // Ensure that uploaded files (like certificates) are either files or null (not undefined)
+      const finalResidentData = {
+        ...resident,
+        updatedAt: timestamp,
+        indigencyCertificate: resident.indigencyCertificate || null,
+        residencyCertificate: resident.residencyCertificate || null,
+        barangayClearance: resident.barangayClearance || null,
+      };
+  
       if (selectedResident) {
-        await updateDoc(doc(db, 'residents', selectedResident.id), {
-          ...resident,
-          updatedAt: timestamp,
-        });
+        // Update existing resident
+        await updateDoc(doc(db, 'residents', selectedResident.id), finalResidentData);
         toast.success('Resident updated!');
       } else {
+        // Add new resident
         await addDoc(collection(db, 'residents'), {
-          ...resident,
+          ...finalResidentData,
           createdAt: timestamp,
-          updatedAt: timestamp,
         });
         toast.success('Resident added!');
       }
-
+  
+      // Reset resident state after form submission
       setResident({
         firstName: '',
         middleName: '',
@@ -211,10 +255,13 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
         phone: '',
         email: '',
         profilePicture: '',
+        indigencyCertificate: '',  
+        residencyCertificate: '',
+        barangayClearance: '',
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       });
-
+  
       onSave?.();
       clearSelection?.();
     } catch (error) {
@@ -224,12 +271,11 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
       setLoading(false);
     }
   };
-
   
-
+  
   return (
 
-    <>
+    <div className="max-h-screen overflow-y-auto p-4 space-y-4">
       {resident.profilePicture && (
           <div className="mt-2 flex items-center gap-2">
             <img
@@ -415,19 +461,109 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
       </div>
 
       {/* Profile Picture */}
-      <div>
-        <input
-          type="file"
-          name="profilePicture"
-          accept="image/*"
-          onChange={(e) => handleChange(e as any)}
-          className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        {resident.profilePicture && (
-  <p className="text-sm text-gray-600 mt-1">Image uploaded</p>
-)}
+<div className="mb-4">
+  <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700">
+    Profile Picture
+  </label>
+  <input
+    type="file"
+    name="profilePicture"
+    accept="image/*"
+    onChange={(e) => handleChange(e as any)}
+    id="profilePicture"
+    className="w-full p-2 mt-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  {resident.profilePicture && (
+    <div className="mt-2 flex items-center space-x-2">
+      <img
+        src={resident.profilePicture}
+        alt="Profile preview"
+        className="w-12 h-12 object-cover rounded-full"
+      />
+      <p className="text-sm text-gray-600">Image uploaded</p>
+    </div>
+  )}
+</div>
 
-      </div>
+{/* Indigency Certificate Upload */}
+<div className="mb-4">
+  <label htmlFor="indigencyCertificate" className="block text-sm font-medium text-gray-700">
+    Indigency Certificate
+  </label>
+  <input
+    type="file"
+    name="indigencyCertificate"
+    accept="image/*, .pdf"
+    onChange={handleChange}
+    id="indigencyCertificate"
+    className="w-full p-2 mt-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  {resident.indigencyCertificate && (
+    <div className="mt-2 flex items-center space-x-2">
+    <img
+      src={resident.indigencyCertificate}
+      alt="Profile preview"
+      className="w-12 h-12 object-cover rounded-full"
+    />
+    <p className="text-sm text-gray-600">indigency Certificate uploaded</p>
+  </div>
+  )}
+  <p className="text-xs text-gray-500 mt-1">Accepted formats: JPG, PNG, PDF</p>
+</div>
+
+{/* Residency Certificate Upload */}
+<div className="mb-4">
+  <label htmlFor="residencyCertificate" className="block text-sm font-medium text-gray-700">
+    Residency Certificate
+  </label>
+  <input
+    type="file"
+    name="residencyCertificate"
+    accept="image/*, .pdf"
+    onChange={handleChange}
+    id="residencyCertificate"
+    className="w-full p-2 mt-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  {resident.residencyCertificate && (
+  <div className="mt-2 flex items-center space-x-2">
+  <img
+    src={resident.residencyCertificate}
+    alt="Profile preview"
+    className="w-12 h-12 object-cover rounded-full"
+  />
+  <p className="text-sm text-gray-600">Residency Certificate uploaded</p>
+</div>
+)}
+  <p className="text-xs text-gray-500 mt-1">Accepted formats: JPG, PNG, PDF</p>
+</div>
+
+{/* Barangay Clearance Upload */}
+<div className="mb-4">
+  <label htmlFor="barangayClearance" className="block text-sm font-medium text-gray-700">
+    Barangay Clearance
+  </label>
+  <input
+    type="file"
+    name="barangayClearance"
+    accept="image/*, .pdf"
+    onChange={handleChange}
+    id="barangayClearance"
+    className="w-full p-2 mt-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  {resident.barangayClearance && (
+     <div className="mt-2 flex items-center space-x-2">
+     <img
+       src={resident.barangayClearance}
+       alt="Profile preview"
+       className="w-12 h-12 object-cover rounded-full"
+     />
+     <p className="text-sm text-gray-600">Barangay Clearance uploaded</p>
+   </div>
+   )}
+  <p className="text-xs text-gray-500 mt-1">Accepted formats: JPG, PNG, PDF</p>
+</div>
+
+
 
       {/* Submit Button */}
       <div className="flex justify-end gap-3 pt-2 flex-wrap">
@@ -448,6 +584,9 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
             phone: '',
             email: '',
             profilePicture: '',
+            indigencyCertificate:'',
+            residencyCertificate:'',
+            barangayClearance:'',
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now(),
           });
@@ -497,6 +636,6 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection 
       </div>
       
     </form>
-    </>
+    </div>
   );
 }

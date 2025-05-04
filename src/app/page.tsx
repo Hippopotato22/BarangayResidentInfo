@@ -97,21 +97,10 @@ export default function Home() {
         </motion.div>
       </div>
 
-      {/* Dark Mode Toggle */}
-      <button
-        onClick={toggleDarkMode}
-        className="absolute top-6 right-6 p-2 bg-gray-600 text-white rounded-full hover:bg-gray-700 focus:outline-none transition"
-      >
-        {darkMode ? (
-          <span role="img" aria-label="light mode">
-            🌞
-          </span>
-        ) : (
-          <span role="img" aria-label="dark mode">
-            🌙
-          </span>
-        )}
-      </button>
+     
     </main>
+      
   );
 }
+
+
