@@ -2,7 +2,6 @@
   "ignoreCommand": "echo 'Skipping Firebase Functions'",
   "buildCommand": "npm run build",
   "outputDirectory": "out",
-  "functions": {},
   "cleanUrls": true,
   "rewrites": [
     {
