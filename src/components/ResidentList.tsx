@@ -113,7 +113,7 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
           <option value="asc">Oldest</option>
         </select>
          <select value={barangay} onChange={(e) => setBarangay(e.target.value)} className="p-2 border rounded bg-dark-blue max-h-40 overflow-y-auto w-48">
-        <option value="">All Barangays</option>
+        <option value="">All Purok</option>
         {barangays.map((barangayName, index) => (
           <option key={index} value={barangayName}>{barangayName}</option>
         ))}

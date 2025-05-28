@@ -204,7 +204,7 @@ if (loading) {
       <option value="asc">Oldest</option>
     </select>
     <select value={barangay} onChange={(e) => setBarangay(e.target.value)} className="p-2 border rounded bg-dark-blue">
-        <option value="">All Barangays</option>
+        <option value="">All Purok</option>
         {barangays.map((barangayName, index) => (
           <option key={index} value={barangayName}>{barangayName}</option>
         ))}
