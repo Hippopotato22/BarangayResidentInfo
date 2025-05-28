@@ -12,6 +12,7 @@ import ColorPicker from '@/app/ColorPicker'
 
 
 export default function ResidentPage() {
+  
     
     
   const { id } = useParams()
