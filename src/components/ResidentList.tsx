@@ -4,10 +4,10 @@ import { Resident } from '@/types/resident';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import toast, { Toaster } from 'react-hot-toast';
-import { useState, useMemo, use } from 'react';
-import { useRouter } from 'next/navigation'; // ✅ Add router for navigation
-import ResidentPage from '@/app/admin/residents/[id]/page';
-import { address } from 'framer-motion/client';
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import ResidentCard from './ResidentCard';
+import barangays from './barangays';
 
 interface Props {
   residents: (Resident & { id: string })[];
@@ -21,26 +21,19 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
   const [status, setStatus] = useState('');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedResident, setSelectedResident] = useState<Resident & { id: string } | null>(null);
   const [deletedResidents, setDeletedResidents] = useState<string[]>([]);
-  const [addedResidents, setAddedResidents] = useState<string[]>([]);
   const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
   const [residentToDelete, setResidentToDelete] = useState<string | null>(null);
+   const [isChecked, setIsChecked] = useState(false); // State to track checkbox
   const itemsPerPage = 5;
-  const [barangay, setBarangay] = useState('');
+  const [barangay, setBarangay] = useState<string>(''); // State for barangay filter
 
-  const router = useRouter(); // ✅ For redirection
-
-
-
-  const uniqueBarangays = Array.from(
-    new Set(residents.map((res) => res.address.split(',')[0].trim()))
-  ).sort();
   
 
-  const handleDelete = async () => {
-    if (!residentToDelete) return;
+  const router = useRouter();
 
+ const handleDelete = async () => {
+    if (!residentToDelete) return;
     try {
       setDeletedResidents((prev) => [...prev, residentToDelete]);
       await deleteDoc(doc(db, 'residents', residentToDelete));
@@ -55,26 +48,6 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
     }
   };
 
-  const handleEdit = (resident: Resident & { id: string }) => {
-    setSelectedResident(resident);
-    onEdit(resident);
-    
-  };
-
-  const handleModalClose = () => {
-    setSelectedResident(null);
-  };
-
-  const handleSaveEdit = async (updatedResident: Resident) => {
-    if (selectedResident) {
-      const docRef = doc(db, 'residents', selectedResident.id);
-      await updateDoc(docRef, updatedResident as Record<string, any>);
-      toast.success('Resident updated!');
-      refreshResidents();
-      handleModalClose();
-    }
-  };
-
   const filtered = useMemo(() => {
     return residents
       .filter((res) => {
@@ -84,7 +57,7 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
         const phone = res.phone?.toLowerCase() || '';
         const age = res.age?.toString() || '';
         const email = res.email?.toLowerCase() || '';
-  
+
         return (
           (fullName.includes(searchLower) ||
            address.includes(searchLower) ||
@@ -107,7 +80,6 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
         return 0;
       });
   }, [residents, search, gender, status, barangay, sortOrder]);
-  
 
   const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -124,13 +96,13 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
           placeholder="Search by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="p-2 border rounded w-full sm:w-auto"
+          className="p-2 border rounded w-full sm:w-auto bg-dark-blue"
         />
         <select value={gender} onChange={(e) => setGender(e.target.value)} className="p-2 border rounded bg-dark-blue">
           <option value="">All Genders</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
-        </select>
+                 </select>
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="p-2 border rounded bg-dark-blue">
           <option value="">All Statuses</option>
           <option value="Single">Single</option>
@@ -140,115 +112,190 @@ export default function ResidentList({ residents, refreshResidents, onEdit }: Pr
           <option value="desc">Newest</option>
           <option value="asc">Oldest</option>
         </select>
-        <select
-          value={barangay}
-          onChange={(e) => setBarangay(e.target.value)}
-          className="p-2 border rounded bg-dark-blue"
-        >
-          <option value="">All Barangays</option>
-        
-          <option value="Barangay 1">Barangay 1</option>
-          <option value="Barangay 2">Barangay 2</option>
-          <option value="Barangay 3">Barangay 3</option>
-          <option value="Barangay 4">Barangay 4</option>
-          <option value="Barangay 5">Barangay 5</option>
-          
-        </select>
-
+         <select value={barangay} onChange={(e) => setBarangay(e.target.value)} className="p-2 border rounded bg-dark-blue">
+        <option value="">All Barangays</option>
+        {barangays.map((barangayName, index) => (
+          <option key={index} value={barangayName}>{barangayName}</option>
+        ))}
+      </select>
       </div>
 
-      {/* List */}
+      {/* Resident Cards List */}
       <ul className="space-y-3">
         {paginated.map((res) => (
-          <li
+          <ResidentCard
             key={res.id}
-            className={`p-3 border rounded flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all duration-500 ease-out ${
-              deletedResidents.includes(res.id) ? 'opacity-0 scale-75' : ''
-            }`}
-          >
-            <div className="flex gap-4 items-start">
-              
-              {res.profilePicture && (
-                <img
-                  src={res.profilePicture}
-                  alt="Profile"
-                  className="w-24 h-24 rounded-full object-cover border" 
-                />
-              )}
-
-              {/* Basic Info */}
-              <div>
-                <strong>{`${res.firstName} ${res.middleName} ${res.lastName} ${res.suffix || ''}`}</strong>
-                <p>{res.age} years old, {res.gender}, {res.civilStatus}</p>
-                <p>Address: {res.address}</p>
-                {res.email && <p>Email: {res.email}</p>}
-                {res.phone && <p>Phone: {res.phone}</p>}
-                {res.createdAt && (
-                  <p className="text-sm text-gray-500">
-                    Created on: {new Date(res.createdAt.seconds * 1000).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => router.push(`/admin/residents/${res.id}`)} // ✅ View Details
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:scale-105 transition"
-              >
-                View Details
-              </button>
-              <button
-                onClick={() => handleEdit(res)}
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:scale-105 transition"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => {
-                  setResidentToDelete(res.id);
-                  setDeleteConfirmModalOpen(true);
-                }}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:scale-105 transition"
-              >
-                Delete
-              </button>
-            </div>
-          </li>
+            res={res}
+            onEdit={onEdit}
+            setResidentToDelete={setResidentToDelete}
+            setDeleteConfirmModalOpen={setDeleteConfirmModalOpen}
+          />
         ))}
       </ul>
 
-      {/* Pagination */}
-      <div className="mt-4 flex justify-center gap-2">
-        {Array.from({ length: totalPages }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentPage(i + 1)}
-            className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
+    {/* Pagination Controls */}
+{totalPages > 1 && (
+  <div className="mt-6 flex justify-center space-x-3">
+    {/* Previous Button */}
+    <button
+      className={`px-4 py-2 rounded-lg font-semibold text-white transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 ${
+        currentPage === 1
+          ? 'bg-gray-300 cursor-not-allowed pointer-events-none'
+          : 'bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:from-green-500 hover:via-green-600 hover:to-green-700 shadow-md'
+      }`}
+      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+      disabled={currentPage === 1}
+      aria-label="Previous page"
+    >
+      Previous
+    </button>
+
+    {/* Page Number Buttons */}
+    {Array.from({ length: totalPages }).map((_, index) => {
+      const pageNum = index + 1;
+      const isActive = currentPage === pageNum;
+      return (
+        <button
+          key={pageNum}
+          className={`px-4 py-2 rounded-lg font-semibold transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            isActive
+              ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white shadow-lg'
+              : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+          }`}
+          onClick={() => setCurrentPage(pageNum)}
+          aria-current={isActive ? 'page' : undefined}
+          aria-label={`Page ${pageNum}`}
+        >
+          {pageNum}
+        </button>
+      );
+    })}
+
+    {/* Next Button */}
+    <button
+      className={`px-4 py-2 rounded-lg font-semibold text-white transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 ${
+        currentPage === totalPages
+          ? 'bg-gray-300 cursor-not-allowed pointer-events-none'
+          : 'bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:from-green-500 hover:via-green-600 hover:to-green-700 shadow-md'
+      }`}
+      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+      disabled={currentPage === totalPages}
+      aria-label="Next page"
+    >
+      Next
+    </button>
+  </div>
+)}
+
 
       {/* Confirm Delete Modal */}
-      {deleteConfirmModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg max-w-sm w-full shadow-lg">
-            <h3 className="text-xl font-semibold mb-4">Confirm Delete</h3>
-            <p className="mb-4">Are you sure you want to delete this resident?</p>
-            <div className="flex justify-between gap-2">
-              <button onClick={handleDelete} className="bg-red-500 text-white p-2 rounded w-full">
-                Yes, Delete
-              </button>
-              <button onClick={() => setDeleteConfirmModalOpen(false)} className="bg-gray-400 text-white p-2 rounded w-full">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+    {deleteConfirmModalOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+    <div className="relative bg-dark-blue p-10 rounded-3xl max-w-2xl w-full shadow-2xl transform transition-all duration-300 scale-100">
+
+      
+      <button
+      onClick={() => setDeleteConfirmModalOpen(false)}
+      className="absolute top-4 right-4 text-white text-4xl font-extrabold hover:text-red-500 focus:outline-none"
+      aria-label="Close"
+    >
+      ×
+    </button>
+
+
+      {/* Title */}
+      <h2 className="text-3xl font-bold text-red-400 mb-6 flex items-center">
+        ⚠️ Deletion Confirmation
+      </h2>
+      <p className="text-lg mb-6 text-white leading-relaxed">
+        You are about to permanently delete a resident record. This action is <strong>irreversible</strong> and will result in the <strong>permanent loss of all related data</strong>.
+      </p>
+
+      {/* Waiver Text */}
+     <div className="bg-red-50 p-8 rounded-xl mb-8 border-2 border-red-400 shadow-md flex items-start gap-4 fade-in-up">
+  <svg
+    className="w-8 h-8 flex-shrink-0 text-red-600"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+  <p className="text-base text-red-700 leading-relaxed">
+    <strong>Important:</strong> By proceeding, you confirm that you fully understand the <strong>permanent and irreversible consequences</strong> of this deletion. <br />
+    This action <em>cannot</em> be undone, and all related resident data will be <strong>permanently removed</strong> from our records and <u>cannot be recovered or restored.</u> <br />
+    Please ensure you have backed up any necessary information before continuing.
+  </p>
+</div>
+
+
+
+
+
+    <div className="flex items-start mb-8">
+  <input
+    type="checkbox"
+    id="delete-confirm-checkbox"
+    checked={isChecked}
+    onChange={() => setIsChecked(!isChecked)}
+    className="hidden"
+  />
+  <label
+    htmlFor="delete-confirm-checkbox"
+    className="flex items-start cursor-pointer select-none"
+  >
+    <span className={`w-6 h-6 mr-4 flex items-center justify-center border-2 rounded-md transition-all duration-200 ${
+      isChecked ? 'bg-red-600 border-red-600' : 'bg-white border-red-600'
+    }`}>
+      {isChecked && (
+        <svg
+          className="w-4 h-4 text-white animate-scale-in"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
       )}
+    </span>
+    <span className="text-base text-white">
+      I understand the consequences and wish to proceed with deletion.
+    </span>
+  </label>
+</div>
+
+
+
+
+      {/* Buttons */}
+      <div className="flex flex-col sm:flex-row justify-end gap-4">
+        <button
+          onClick={handleDelete}
+          className={`bg-red-600 hover:bg-red-700 text-white text-lg font-semibold px-6 py-3 rounded-lg w-full sm:w-auto transition ${
+            !isChecked ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          disabled={!isChecked}
+        >
+          Yes, Delete Permanently
+        </button>
+        <button
+          onClick={() => setDeleteConfirmModalOpen(false)}
+          className="bg-gray-500 hover:bg-gray-600 text-white text-lg font-semibold px-6 py-3 rounded-lg w-full sm:w-auto transition"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
+  </div>
+)}
+
+
+   </div>
+    
+
   );
 }
+   

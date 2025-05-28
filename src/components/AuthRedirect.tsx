@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
+
 export default function AuthRedirect() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);

@@ -8,6 +8,7 @@ import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import useAuthGuard from '@/utils/authGuard'
+import ColorPicker from '@/app/ColorPicker'
 
 
 export default function ResidentPage() {
@@ -17,6 +18,7 @@ export default function ResidentPage() {
   const [resident, setResident] = useState<Resident | null>(null)
   const [loading, setLoading] = useState(true)
   const useloading = useAuthGuard('user')
+  const [backgroundColor, setBackgroundColor] = useState<string>('linear-gradient(to right, #ff7e5f, #feb47b)'); // Default gradient
 
 
   useEffect(() => {
@@ -53,7 +55,10 @@ export default function ResidentPage() {
   if (!resident) return <div className="text-center text-red-500 mt-10">Resident not found.</div>
 
   return (
-    <main className="bg-gradient-to-r from-gray-800 to-black min-h-screen flex justify-center items-start py-25"> {/* Dark Gradient */}
+    <main className="min-h-screen p-6 pt-20" style={{ background: backgroundColor }}> {/* Dark Gradient */}
+       <div className="absolute top-14 right-13 z-50">
+          <ColorPicker onChange={setBackgroundColor} selectedColor={backgroundColor} />
+        </div>
       {/* Resident Details Container */}
       <div className="max-w-3xl mx-auto p-6 bg-white shadow-xl bg-gradient-to-br from-blue-100 via-white to-blue-200 rounded-lg text-gray-800">
         {/* Resident Profile and Details */}

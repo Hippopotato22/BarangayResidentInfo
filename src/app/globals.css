@@ -16,6 +16,15 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+
+  @font-face {
+  font-family: 'Adoria';
+  src: url('/public/fonts/Adoriademo-L3YmG.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
 }*/
 
 @media (prefers-color-scheme: dark) {
@@ -24,6 +33,118 @@
     --foreground: #ffffff;
   }
 }
+
+
+/* styles/fonts.css */
+@font-face {
+  font-family: 'AdoriaDemo';
+  src: url('/fonts/Adoriademo-L3YmG.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Freva';
+  src: url('/fonts/freva.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  
+}
+
+@font-face {
+  font-family: 'Deligh-extrabold';
+  src: url('/fonts/deligh-extrabold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  
+}
+
+@font-face {
+  font-family: 'Breathing';
+  src: url('/fonts/Breathing.ttf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  
+}
+
+@font-face {
+  font-family: 'Nestocopper';
+  src: url('/fonts/Nestocopper.ttf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  
+}
+
+@font-face {
+  font-family: 'RandomWed';
+  src: url('/fonts/Random Wednesday.ttf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  
+}
+
+@font-face {
+  font-family: 'hellonewyork';
+  src: url('/fonts/Hello Newyork.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  
+}
+
+@font-face {
+  font-family: 'qurovaBold';
+  src: url('/fonts/Qurova-Bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  
+}
+
+.animated-gradient-text {
+  background: linear-gradient(270deg, #a855f7, #3b82f6, #06b6d4, #a855f7);
+  background-size: 800% 800%;
+  -webkit-background-clip: text; /* Vendor prefix for Safari */
+  background-clip: text; /* Standard property */
+  -webkit-text-fill-color: transparent; /* Vendor prefix for Safari */
+  animation: gradientMove 8s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 6s ease infinite;
+}
+
+
+.icon-bounce:hover {
+  animation: bounce 0.6s;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+
 
 body {
   background: var(--background);
@@ -46,6 +167,84 @@ body {
   animation: fadeIn 0.3s ease-in-out;
 }
 
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradient-animation 8s ease infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out forwards;
+}
+
+
+
+
+.relative:hover .absolute {
+  opacity: 1; /* Show dropdown on hover */
+  pointer-events: auto; /* Enable pointer events */
+}
+
+.color-option {
+  transition: transform 0.2s; /* Smooth transition for scaling */
+}
+
+.color-option:hover {
+  transform: scale(1.25); /* Scale up on hover */
+}
+
+
+@keyframes scale-in {
+  0% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
 
 
 @layer utilities {
