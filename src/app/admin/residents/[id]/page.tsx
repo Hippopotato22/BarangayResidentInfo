@@ -156,7 +156,7 @@ export default function ResidentPage() {
             <div><strong>Age:</strong> {resident.age || 'N/A'}</div>
             <div><strong>Gender:</strong> {resident.gender || 'N/A'}</div>
             <div><strong>Civil Status:</strong> {resident.civilStatus || 'N/A'}</div>
-            <div><strong>Address:</strong> {resident.address || 'N/A'}</div>
+            <div><strong>Address:</strong> {resident.address}{resident.purok ? `, Purok ${resident.purok}` : '' }</div>
             <div><strong>Phone:</strong> {resident.phone || 'N/A'}</div>
             <div><strong>Email:</strong> {resident.email || 'N/A'}</div>
             <div><strong>Created At:</strong> {resident.createdAt?.toDate().toLocaleString() || 'N/A'}</div>

@@ -93,7 +93,7 @@ export default function ResidentPage() {
             <div><strong>Age:</strong> {resident.age}</div>
             <div><strong>Gender:</strong> {resident.gender}</div>
             <div><strong>Civil Status:</strong> {resident.civilStatus}</div>
-            <div><strong>Address:</strong> {resident.address}</div>
+            <div><strong>Address:</strong> {resident.address}{resident.purok ? `, Purok ${resident.purok}` : ''}</div>
             <div><strong>Phone:</strong> {resident.phone}</div>
             <div><strong>Email:</strong> {resident.email}</div>
             <div><strong>Created At:</strong> {resident.createdAt.toDate().toLocaleString()}</div>

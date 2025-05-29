@@ -83,6 +83,7 @@ export default function UserDashboard() {
         const searchLower = search.toLowerCase();
         const fullName = `${res.firstName} ${res.middleName} ${res.lastName}`.toLowerCase();
         const address = res.address?.toLowerCase() || '';
+        const purok = res.purok?.toLowerCase() || '';
         const phone = res.phone?.toLowerCase() || '';
         const email = res.email?.toLowerCase() || '';
         const age = res.age?.toString() || '';
@@ -90,6 +91,7 @@ export default function UserDashboard() {
         return (
           (fullName.includes(searchLower) ||
            address.includes(searchLower) ||
+           purok.includes(searchLower) ||
            phone.includes(searchLower) ||
            email.includes(searchLower) ||
            age.includes(searchLower)) &&
@@ -204,7 +206,7 @@ if (loading) {
       <option value="asc">Oldest</option>
     </select>
     <select value={barangay} onChange={(e) => setBarangay(e.target.value)} className="p-2 border rounded bg-dark-blue">
-        <option value="">All Purok</option>
+        <option value="">All Barangays</option>
         {barangays.map((barangayName, index) => (
           <option key={index} value={barangayName}>{barangayName}</option>
         ))}
@@ -233,7 +235,13 @@ if (loading) {
           <div>
             <strong className="text-lg font-semibold">{`${res.firstName} ${res.middleName} ${res.lastName} ${res.suffix || ''}`}</strong>
             <p className="text-sm text-gray-600">{res.age} years old, {res.gender}, {res.civilStatus}</p>
-            <p className="text-sm text-gray-600">Address: {res.address}</p>
+            <p className="text-md text-white-700">
+          Address:{' '}
+          <span className="font-medium">
+            {res.address}
+            {res.purok ? `, Purok ${res.purok}` : ''}
+          </span>
+        </p>
             {res.email && <p className="text-sm text-gray-600">Email: {res.email}</p>}
             {res.phone && <p className="text-sm text-gray-600">Phone: {res.phone}</p>}
           </div>

@@ -316,7 +316,7 @@ return (
           className="w-16 h-16 mb-2 animate-bounce"
         />
         <p className="text-sm font-semibold text-center">
-          💡 Tip: You can search residents by name, gender, age, address, or contact number for faster lookup!
+          💡 Tip: You can search residents by name, gender, age, address, purok or contact number for faster lookup!
         </p>
       </div>
     )}

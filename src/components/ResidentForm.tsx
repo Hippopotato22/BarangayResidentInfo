@@ -29,6 +29,9 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection,
     age: selectedResident?.age || initialState?.age || 0,
     gender: selectedResident?.gender || initialState?.gender || "",
     address: selectedResident?.address || initialState?.address || "",
+
+    purok: selectedResident?.purok || initialState?.purok || "",
+
     civilStatus: selectedResident?.civilStatus || initialState?.civilStatus || "",
     birthdate: selectedResident?.birthdate || initialState?.birthdate || "",
     phone: selectedResident?.phone || initialState?.phone || "",
@@ -87,8 +90,11 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection,
     if (!resident.lastName.trim()) newErrors.lastName = 'Last name is required';
     if (!resident.birthdate) newErrors.birthdate = 'Birthdate is required';
     if (!resident.address) newErrors.address = 'Address is required';
+    if (!resident.purok) newErrors.purok = 'Purok is required';
     if (!resident.gender) newErrors.gender = 'Gender is required';
     if (!resident.civilStatus) newErrors.civilStatus = 'Civil status is required';
+    if (!resident.phone) newErrors.phone = 'Phone number is required';
+    if (!resident.email) newErrors.email = 'Email is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -114,57 +120,76 @@ export default function ResidentForm({ selectedResident, onSave, clearSelection,
   reader.readAsDataURL(file);
 };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, files } = e.target as HTMLInputElement & HTMLSelectElement;
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith('image/') || file.type.startsWith('application/pdf')) {
-        handleFileChange(name, file);
-        
-      } else {
-        setResident((prev) => ({
-          ...prev,
-          [name]: '',
-        }));
-      }
-      return; // Exit early for file handling
-    }
-    let newValue = value;
+ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const { name, value, files } = e.target as HTMLInputElement & HTMLSelectElement;
 
-     if (name === 'birthdate') {
-      const age = calculateAge(value);
-      setResident((prev) => ({
-        ...prev,
-        [name]: value,
-        age,
-      }));
-    } else if (['firstName', 'middleName', 'lastName'].includes(name)) {
-      newValue = capitalize(value.slice(0, 15));
-      setResident((prev) => ({
-        ...prev,
-        [name]: newValue,
-      }));
-    } else if (name === 'phone') {
-      newValue = formatPhoneNumber(value);
-      setResident((prev) => ({
-        ...prev,
-        phone: newValue,
-      }));
-      if (errors.phone) {
-        setErrors((prev) => ({ ...prev, phone: '' }));
-      }
+  // Handle file uploads
+  if (files && files.length > 0) {
+    const file = files[0];
+    if (file.type.startsWith('image/') || file.type.startsWith('application/pdf')) {
+      handleFileChange(name, file);
     } else {
       setResident((prev) => ({
         ...prev,
-        [name]: newValue,
+        [name]: '',
       }));
     }
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
+    return; // Exit early for file handling
+  }
 
-     setChangesMade(true); // Mark changes as made
-  };
+  let newValue = value;
+
+  // Calculate age from birthdate
+  if (name === 'birthdate') {
+    const age = calculateAge(value);
+    setResident((prev) => ({
+      ...prev,
+      [name]: value,
+      age,
+    }));
+  } 
+  // Capitalize names
+  else if (['firstName', 'middleName', 'lastName'].includes(name)) {
+    newValue = capitalize(value.slice(0, 15));
+    setResident((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+  } 
+  // Format phone number
+  else if (name === 'phone') {
+    newValue = formatPhoneNumber(value);
+    setResident((prev) => ({
+      ...prev,
+      phone: newValue,
+    }));
+    if (errors.phone) {
+      setErrors((prev) => ({ ...prev, phone: '' }));
+    }
+  } 
+  // Handle Purok input
+  else if (name === 'purok') {
+    newValue = value; // Directly set the purok value
+    setResident((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+  } 
+  // Handle other inputs
+  else {
+    setResident((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+  }
+
+  // Clear any existing error for the current field
+  if (errors[name]) {
+    setErrors((prev) => ({ ...prev, [name]: '' }));
+  }
+
+  setChangesMade(true); // Mark changes as made
+};
 
 
    // Format PH phone number helper
@@ -266,6 +291,7 @@ const base64FileSize = (base64String: string) => {
       age: selectedResident?.age || initialState?.age || 0,
       gender: selectedResident?.gender || initialState?.gender || "",
       address: selectedResident?.address || initialState?.address || "",
+      purok: selectedResident?.purok || initialState?.purok || "",
       civilStatus: selectedResident?.civilStatus || initialState?.civilStatus || "",
       birthdate: selectedResident?.birthdate || initialState?.birthdate || "",
       phone: selectedResident?.phone || initialState?.phone || "",
@@ -585,7 +611,27 @@ const handleUpdateClick = () => {
         ))}
       </select>
       {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+       
+
     </div>
+<div>
+  <label htmlFor="purok" className="block mb-1 font-medium text-gray-700">
+        Purok
+      </label>
+  <input
+      type="text"
+      id="purok"
+      name="purok"
+      value={resident.purok}
+      onChange={handleChange}
+      placeholder="Enter Purok"
+      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+     {errors.purok && <p className="text-red-500 text-sm mt-1">{errors.purok}</p>}
+</div>
+    
+
+   
 
         {/* Phone */}
         <div>

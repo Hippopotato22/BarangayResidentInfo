@@ -19,4 +19,5 @@ export interface Resident {
   barangayClearance?: string;
   residencyCertificate?: string;
   indigencyCertificate?: string;
+  purok?: string;
 }
